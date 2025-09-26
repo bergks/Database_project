@@ -1,0 +1,52 @@
+from database import db
+import logging
+from add_test_data import add_test_data
+
+logging.basicConfig(level=logging.DEBUG)
+
+def init_database():
+    """Инициализирует базу данных начальными данными"""
+    try:
+        # Добавляем начальные типы атак, если их нет
+        initial_attacks = ["DDoS", "Brute Force", "SQL Injection", "Phishing", "Malware"]
+
+        existing_attacks = db.get_all_attack_types()
+        existing_names = [at['name'] for at in existing_attacks]
+
+        for attack_name in initial_attacks:
+            if attack_name not in existing_names:
+                db.insert_attack_type(attack_name)
+                print(f"Добавлен тип атаки: {attack_name}")
+            else:
+                print(f"Тип атаки '{attack_name}' уже существует")
+
+        # Проверим, что действительно добавилось
+        final_attacks = db.get_all_attack_types()
+        print(f"Итоговое количество типов атак: {len(final_attacks)}")
+        for attack in final_attacks:
+            print(f"ID: {attack['id']}, Name: {attack['name']}")
+
+        print("База данных инициализирована успешно!")
+        # ДОБАВЛЯЕМ ТЕСТОВЫЕ ДАННЫЕ
+        add_test_data()
+
+    except Exception as e:
+        print(f"Ошибка инициализации БД: {e}")
+        import traceback
+        traceback.print_exc()
+
+def insert_attack_type(self, name: str) -> int:
+    """Добавляет новый тип атаки"""
+    query = "INSERT INTO attack_types (name) VALUES (%s) RETURNING id"
+    try:
+        result = self.execute_query(query, (name,), fetch=True)
+        if result and len(result) > 0:
+            return result[0]['id']
+        else:
+            raise Exception("Не удалось получить ID созданного типа атаки")
+    except Exception as e:
+        logging.error(f"Ошибка при вставке типа атаки: {e}")
+        raise e
+
+if __name__ == "__main__":
+    init_database()
