@@ -23,7 +23,6 @@ class HistoryWindow(QMainWindow):
         layout.setSpacing(10)
         layout.setContentsMargins(20, 20, 20, 20)
 
-        # Заголовок
         if content_type == "Эксперименты":
             title_text = "Таблица экспериментов"
         elif content_type == "Метрики":
@@ -39,7 +38,6 @@ class HistoryWindow(QMainWindow):
         title_label.setStyleSheet("color: #2c3e50; margin-bottom: 15px;")
         layout.addWidget(title_label)
 
-        # Создаем соответствующую таблицу
         if content_type == "Эксперименты":
             self.setup_experiments_table(layout)
         elif content_type == "Метрики":
@@ -48,11 +46,9 @@ class HistoryWindow(QMainWindow):
             self.setup_parameters_table(layout)
 
     def load_experiments_data(self):
-        """Загружает данные экспериментов из базы данных"""
         try:
             experiments_data = db.get_all_experiments()
 
-            # Преобразуем данные для таблицы
             table_data = []
             for exp in experiments_data:
                 table_data.append([
@@ -60,24 +56,18 @@ class HistoryWindow(QMainWindow):
                     exp['model_name'],
                     exp['model_version'],
                     exp['dataset_name'],
-                    exp['test_date'].strftime('%Y-%m-%d'),  # Форматируем дату
-                    exp['description'] or ''  # На случай NULL
+                    exp['test_date'].strftime('%Y-%m-%d'),
+                    exp['description'] or ''
                 ])
 
             self.fill_table(table_data)
 
         except Exception as e:
             logging.error(f"Ошибка загрузки экспериментов: {e}")
-            # Используем тестовые данные при ошибке
-            """experiments_data = [
-                [1, "LLM2", "v7.2", "dataset1", "2025-01-02", "Ошибка загрузки данных"],
-            ]
-            self.fill_table(experiments_data)"""
             self.fill_table([])
 
 
     def load_metrics_data(self):
-        """Загружает данные метрик из базы данных"""
         try:
             metrics_data = db.get_all_metrics()
 
@@ -99,7 +89,6 @@ class HistoryWindow(QMainWindow):
             self.fill_table([])
 
     def load_parameters_data(self):
-        """Загружает данные параметров из базы данных"""
         try:
             parameters_data = db.get_all_parameters()
 
@@ -119,7 +108,6 @@ class HistoryWindow(QMainWindow):
             self.fill_table([])
 
     def setup_experiments_table(self, layout):
-        """Создает таблицу экспериментов"""
         self.table = QTableWidget()
         self.table.setColumnCount(6)
         headers = ["ID", "Модель", "Версия модели", "Датасет", "Дата", "Описание"]
@@ -130,7 +118,6 @@ class HistoryWindow(QMainWindow):
         layout.addWidget(self.table)
 
     def setup_metrics_table(self, layout):
-        """Создает таблицу метрик"""
         self.table = QTableWidget()
         self.table.setColumnCount(6)
         headers = ["ID", "ID экспер.", "ID атаки", "Accuracy", "Precision", "Recall"]
@@ -141,7 +128,6 @@ class HistoryWindow(QMainWindow):
         layout.addWidget(self.table)
 
     def setup_parameters_table(self, layout):
-        """Создает таблицу параметров"""
         self.table = QTableWidget()
         self.table.setColumnCount(4)
         headers = ["ID", "ID экспер.", "Название", "Значение"]
@@ -152,7 +138,6 @@ class HistoryWindow(QMainWindow):
         layout.addWidget(self.table)
 
     def style_table(self):
-        """Настраивает общий стиль таблицы"""
         self.table.setStyleSheet("""
             QTableWidget {
                 gridline-color: #d0d0d0;
@@ -168,22 +153,20 @@ class HistoryWindow(QMainWindow):
         """)
 
     def fill_table(self, data):
-        """Заполняет таблицу данными"""
         self.table.setRowCount(0)
         self.table.setRowCount(len(data))
 
         for row, row_data in enumerate(data):
             for col, value in enumerate(row_data):
                 item = QTableWidgetItem(str(value))
-                item.setTextAlignment(Qt.AlignCenter)  # ВСЕ ячейки по центру
+                item.setTextAlignment(Qt.AlignCenter)
                 self.table.setItem(row, col, item)
 
-        # Настраиваем размеры колонок после заполнения данными
         header = self.table.horizontalHeader()
         for col in range(self.table.columnCount()):
-            if col in [0, 1, 2]:  # ID колонки - по содержимому
+            if col in [0, 1, 2]:
                 header.setSectionResizeMode(col, QHeaderView.ResizeToContents)
-            else:  # Остальные колонки - растягиваются
+            else:
                 header.setSectionResizeMode(col, QHeaderView.Stretch)
 
     def center_on_screen(self):
