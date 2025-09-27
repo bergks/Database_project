@@ -7,17 +7,18 @@ from PySide6.QtCore import Qt, QDate
 from database import db
 import logging
 
+
 class AddExperimentDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Добавить новый эксперимент")
         self.setModal(True)
-        self.setFixedSize(650, 700)
+        self.setFixedSize(650, 840)
         self.center_on_parent()
 
-        # Данные для выпадающих списков (временные, потом заменим на данные из БД)
-        self.attack_types = [("DDoS", 1), ("Brute Force", 2), ("SQL Injection", 3)]
-        #self.attack_types = []
+        # Данные для выпадающих списков
+        self.status_types = [("active", "Активный"), ("completed", "Завершен"), ("failed", "Неудачный")]
+        self.attack_types = []
         self.setup_ui()
 
         # Загружаем типы атак из базы данных
@@ -56,7 +57,11 @@ class AddExperimentDialog(QDialog):
         self.metrics_widget = self.create_metrics_widget()
         main_layout.addWidget(self.metrics_widget)
 
-        # Статус и кнопка сохранения
+        # Статус эксперимента (ИСПРАВЛЕННЫЙ ВИДЖЕТ)
+        self.status_widget = self.create_status_widget()
+        main_layout.addWidget(self.status_widget)
+
+        # Кнопка сохранения
         bottom_widget = self.create_bottom_widget()
         main_layout.addWidget(bottom_widget)
 
@@ -79,7 +84,7 @@ class AddExperimentDialog(QDialog):
         grid_layout.setHorizontalSpacing(12)
         grid_layout.setVerticalSpacing(6)
 
-        # Поля ввода (остаются без изменений)
+        # Поля ввода
         self.model_name_input = QLineEdit()
         self.model_name_input.setPlaceholderText("Название модели")
         self.model_name_input.setFixedHeight(28)
@@ -98,12 +103,11 @@ class AddExperimentDialog(QDialog):
         self.date_input.setDisplayFormat("yyyy-MM-dd")
         self.date_input.setFixedHeight(28)
 
-        # ИСПРАВЛЕНИЕ: Поле описания - такой же высоты, но многострочное
         self.description_input = QTextEdit()
         self.description_input.setPlaceholderText("Описание эксперимента")
-        self.description_input.setFixedHeight(28)  # ← ТАКАЯ ЖЕ ВЫСОТА!
-        self.description_input.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)  # ← Убираем скроллбар
-        self.description_input.setLineWrapMode(QTextEdit.WidgetWidth)  # ← Перенос по словам
+        self.description_input.setFixedHeight(28)
+        self.description_input.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.description_input.setLineWrapMode(QTextEdit.WidgetWidth)
 
         # Стили для полей ввода
         input_style = """
@@ -162,7 +166,7 @@ class AddExperimentDialog(QDialog):
         grid_layout.addWidget(self.model_version_input, 1, 1)
         grid_layout.addWidget(self.dataset_input, 2, 1)
         grid_layout.addWidget(self.date_input, 3, 1)
-        grid_layout.addWidget(self.description_input, 4, 1)  # ← ПРОСТО ДОБАВЛЯЕМ В СЕТКУ
+        grid_layout.addWidget(self.description_input, 4, 1)
 
         layout.addLayout(grid_layout)
         return group
@@ -175,15 +179,13 @@ class AddExperimentDialog(QDialog):
 
         layout = QVBoxLayout(group)
 
-        # Заголовок и кнопка добавления
+        # Заголовок
         header_layout = QHBoxLayout()
         title = QLabel("Параметры модели")
         title.setFont(QFont("Arial", 10, QFont.Bold))
         title.setStyleSheet("color: #2c3e50;")
         header_layout.addWidget(title)
-
         header_layout.addStretch()
-
         layout.addLayout(header_layout)
 
         # Контейнер для строк параметров
@@ -204,15 +206,13 @@ class AddExperimentDialog(QDialog):
 
         layout = QVBoxLayout(group)
 
-        # Заголовок и кнопка добавления
+        # Заголовок
         header_layout = QHBoxLayout()
         title = QLabel("Метрики")
         title.setFont(QFont("Arial", 10, QFont.Bold))
         title.setStyleSheet("color: #2c3e50;")
         header_layout.addWidget(title)
-
         header_layout.addStretch()
-
         layout.addLayout(header_layout)
 
         # Контейнер для строк метрик
@@ -225,12 +225,39 @@ class AddExperimentDialog(QDialog):
 
         return group
 
+    def create_status_widget(self):
+        """Создает виджет для статуса эксперимента (ИСПРАВЛЕННЫЙ МЕТОД)"""
+        group = QFrame()
+        group.setFrameStyle(QFrame.Box)
+        group.setStyleSheet("QFrame { border: 2px solid #d8bfd8; border-radius: 6px; padding: 10px; }")
+
+        layout = QVBoxLayout(group)
+
+        # Заголовок
+        header_layout = QHBoxLayout()
+        title = QLabel("Статус эксперимента")
+        title.setFont(QFont("Arial", 10, QFont.Bold))
+        title.setStyleSheet("color: #2c3e50;")
+        header_layout.addWidget(title)
+        header_layout.addStretch()
+        layout.addLayout(header_layout)
+
+        # Контейнер для статуса (только одна строка)
+        self.status_container = QVBoxLayout()
+        self.status_container.setSpacing(6)
+        layout.addLayout(self.status_container)
+
+        # Добавляем строку статуса
+        self.add_status_row()
+
+        return group
+
     def create_bottom_widget(self):
         """Создает нижнюю часть с кнопкой сохранения и статусом"""
         widget = QWidget()
         layout = QVBoxLayout(widget)
 
-        # Статус
+        # Статус сохранения
         self.status_label = QLabel("Статус: не сохранено")
         self.status_label.setFont(QFont("Arial", 9))
         self.status_label.setStyleSheet("color: #e74c3c; font-weight: bold;")
@@ -270,9 +297,9 @@ class AddExperimentDialog(QDialog):
             }
         """)
 
-        # ИСПРАВЛЕНИЕ: Поле значения параметра
+        # Поле значения параметра
         value_input = QDoubleSpinBox()
-        value_input.setRange(-999999.999, 999999.999)  # ← ШИРОКИЙ ДИАПАЗОН
+        value_input.setRange(-999999.999, 999999.999)
         value_input.setSingleStep(0.01)
         value_input.setDecimals(3)
         value_input.setValue(0.0)
@@ -347,12 +374,12 @@ class AddExperimentDialog(QDialog):
             }
         """)
 
-        # Поля для метрик с нулевыми значениями
+        # Поля для метрик
         accuracy_input = QDoubleSpinBox()
         accuracy_input.setRange(0, 1)
         accuracy_input.setSingleStep(0.01)
         accuracy_input.setDecimals(3)
-        accuracy_input.setValue(0.0)  # Начальное значение 0
+        accuracy_input.setValue(0.0)
         accuracy_input.setPrefix("A:")
         accuracy_input.setFixedHeight(26)
         accuracy_input.setStyleSheet("QDoubleSpinBox { font-size: 8px; min-width: 60px; }")
@@ -361,7 +388,7 @@ class AddExperimentDialog(QDialog):
         precision_input.setRange(0, 1)
         precision_input.setSingleStep(0.01)
         precision_input.setDecimals(3)
-        precision_input.setValue(0.0)  # Начальное значение 0
+        precision_input.setValue(0.0)
         precision_input.setPrefix("P:")
         precision_input.setFixedHeight(26)
         precision_input.setStyleSheet("QDoubleSpinBox { font-size: 8px; min-width: 60px; }")
@@ -370,7 +397,7 @@ class AddExperimentDialog(QDialog):
         recall_input.setRange(0, 1)
         recall_input.setSingleStep(0.01)
         recall_input.setDecimals(3)
-        recall_input.setValue(0.0)  # Начальное значение 0
+        recall_input.setValue(0.0)
         recall_input.setPrefix("R:")
         recall_input.setFixedHeight(26)
         recall_input.setStyleSheet("QDoubleSpinBox { font-size: 8px; min-width: 60px; }")
@@ -388,21 +415,44 @@ class AddExperimentDialog(QDialog):
 
         self.metrics_container.addWidget(row_widget)
 
-    def get_button_style(self):
-        """Возвращает стиль для кнопок добавления"""
-        return """
-            QPushButton {
-                background-color: #e6e6fa;
-                color: #2c3e50;
-                border: 1px solid #d8bfd8;
-                border-radius: 3px;
-                font-size: 10px;
-                font-weight: bold;
+    def add_status_row(self):
+        """Добавляет строку для выбора статуса эксперимента (ИСПРАВЛЕННЫЙ МЕТОД)"""
+        row_widget = QWidget()
+        row_layout = QHBoxLayout(row_widget)
+        row_layout.setContentsMargins(0, 0, 0, 0)
+        row_layout.setSpacing(4)
+
+        # Выпадающий список статусов эксперимента
+        self.status_combo = QComboBox()  # Сохраняем как атрибут для доступа из других методов
+        for status_key, status_name in self.status_types:
+            self.status_combo.addItem(status_name, status_key)
+
+        self.status_combo.setFixedHeight(26)
+        self.status_combo.setStyleSheet("""
+            QComboBox { 
+                padding: 4px; 
+                border: 1px solid #d8bfd8; 
+                border-radius: 3px; 
+                font-size: 9px;
+                min-height: 26px;
+                max-height: 26px;
+                min-width: 120px;
             }
-            QPushButton:hover {
-                background-color: #d8bfd8;
+            QComboBox:focus {
+                border: 1px solid #c9a0c9;
             }
-        """
+        """)
+
+        # Подпись
+        small_label_style = "QLabel { font-size: 9px; font-weight: bold; color: #2c3e50; min-width: 120px; }"
+
+        status_label = QLabel("Статус эксперимента:")
+        status_label.setStyleSheet(small_label_style)
+        row_layout.addWidget(status_label)
+        row_layout.addWidget(self.status_combo)
+        row_layout.addStretch()  # Добавляем растяжку для выравнивания
+
+        self.status_container.addWidget(row_widget)
 
     def get_save_button_style(self):
         """Возвращает стиль для кнопки сохранения"""
@@ -422,13 +472,15 @@ class AddExperimentDialog(QDialog):
         """
 
     def collect_experiment_data(self):
-        """Собирает данные из формы в словарь"""
+        """Собирает данные из формы в словарь (ИСПРАВЛЕННЫЙ МЕТОД)"""
         data = {
             'model_name': self.model_name_input.text(),
             'model_version': self.model_version_input.text(),
             'dataset_name': self.dataset_input.text(),
             'date': self.date_input.date().toString("yyyy-MM-dd"),
             'description': self.description_input.toPlainText(),
+            'status': self.status_combo.currentData(),  # Берем статус из комбобокса
+            'status_text': self.status_combo.currentText(),
             'parameters': [],
             'metrics': []
         }
@@ -440,8 +492,8 @@ class AddExperimentDialog(QDialog):
                 line_edits = widget.findChildren(QLineEdit)
                 spin_boxes = widget.findChildren(QDoubleSpinBox)
                 if line_edits and spin_boxes:
-                    param_name = line_edits[0].text()  # Первый QLineEdit - название
-                    param_value = spin_boxes[0].value()  # Первый QDoubleSpinBox - значение
+                    param_name = line_edits[0].text()
+                    param_value = spin_boxes[0].value()
                     if param_name:
                         data['parameters'].append({
                             'name': param_name,
@@ -489,7 +541,7 @@ class AddExperimentDialog(QDialog):
                         combo.addItem(attack_name, attack_id)
 
     def save_experiment(self):
-        """Сохраняет эксперимент в базу данных"""
+        """Сохраняет эксперимент в базу данных (ИСПРАВЛЕННЫЙ МЕТОД)"""
         try:
             # Собираем данные
             data = self.collect_experiment_data()
@@ -505,12 +557,10 @@ class AddExperimentDialog(QDialog):
                 data['model_version'],
                 data['dataset_name'],
                 data['date'],
+                data['status'],  # Передаем статус
                 data['description']
             )
-            # ДОБАВИМ ОТЛАДОЧНУЮ ИНФОРМАЦИЮ
-            print(f"Создан эксперимент с ID: {experiment_id}")
-            print(f"Количество параметров: {len(data['parameters'])}")
-            print(f"Количество метрик: {len(data['metrics'])}")
+
             # Сохраняем параметры
             for param in data['parameters']:
                 db.insert_parameter(experiment_id, param['name'], param['value'])
@@ -528,9 +578,6 @@ class AddExperimentDialog(QDialog):
             QMessageBox.information(self, "Успех", f"Эксперимент #{experiment_id} сохранен!")
             self.status_label.setText("Статус: сохранено")
             self.status_label.setStyleSheet("color: #27ae60; font-weight: bold;")
-
-            # Закрываем диалог через 2 секунды
-            # QTimer.singleShot(2000, self.accept)
 
         except Exception as e:
             logging.error(f"Ошибка сохранения эксперимента: {e}")

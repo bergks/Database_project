@@ -61,6 +61,7 @@ class HistoryWindow(QMainWindow):
                     exp['model_version'],
                     exp['dataset_name'],
                     exp['test_date'].strftime('%Y-%m-%d'),  # Форматируем дату
+                    exp['experiment_status_enum'],
                     exp['description'] or ''  # На случай NULL
                 ])
 
@@ -121,8 +122,8 @@ class HistoryWindow(QMainWindow):
     def setup_experiments_table(self, layout):
         """Создает таблицу экспериментов"""
         self.table = QTableWidget()
-        self.table.setColumnCount(6)
-        headers = ["ID", "Модель", "Версия модели", "Датасет", "Дата", "Описание"]
+        self.table.setColumnCount(7)
+        headers = ["ID", "Модель", "Версия модели", "Датасет", "Дата", "Статус", "Описание"]
         self.table.setHorizontalHeaderLabels(headers)
 
         self.style_table()

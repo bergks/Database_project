@@ -16,27 +16,19 @@ class AddAttackTypeDialog(QDialog):
         self.setFixedSize(500, 600)
         self.center_on_parent()
         self.attack_types = []
-        # Загружаем типы атак из базы данных
         self.setup_ui()
         self.load_attack_types()
 
     def load_attack_types(self):
-        """Загружает типы атак из базы данных"""
         try:
             attack_types_data = db.get_all_attack_types()
             self.attack_types = [(at['id'], at['name']) for at in attack_types_data]
             self.load_attacks_data()
         except Exception as e:
             logging.error(f"Ошибка загрузки типов атак: {e}")
-            # Временные данные при ошибке
-            self.attack_types = [
-                (1, "DDoS"), (2, "Brute Force"), (3, "SQL Injection"),
-                (4, "Phishing"), (5, "Malware")
-            ]
             self.load_attacks_data()
 
     def save_attack_type(self):
-        """Сохраняет новый тип атаки в базу данных"""
         attack_name = self.new_attack_input.text().strip()
 
         if not attack_name:
@@ -44,7 +36,7 @@ class AddAttackTypeDialog(QDialog):
             return
 
         try:
-            # Проверяем существование в базе данных
+            """проверяем существование в базе данных"""
             existing_attacks = db.get_all_attack_types()
             existing_names = [at['name'] for at in existing_attacks]
 
@@ -52,17 +44,15 @@ class AddAttackTypeDialog(QDialog):
                 QMessageBox.warning(self, "Ошибка", "Тип атаки с таким названием уже существует!")
                 return
 
-            # Сохраняем в базу данных
+            """сохраняем в базу данных"""
             new_id = db.insert_attack_type(attack_name)
 
-            # Обновляем локальный список и таблицу
+            """"обновляем локальный список и таблицу"""
             self.attack_types.append((new_id, attack_name))
             self.load_attacks_data()
 
-            # Очищаем поле ввода
+            """очищаем поле ввода и обновляем статус"""
             self.new_attack_input.clear()
-
-            # Обновляем статус
             self.status_label.setText("Статус: сохранено")
             self.status_label.setStyleSheet("color: #27ae60; font-weight: bold;")
 
@@ -74,7 +64,6 @@ class AddAttackTypeDialog(QDialog):
 
 
     def center_on_parent(self):
-        """Центрирует диалог относительно родительского окна"""
         if self.parent():
             parent_geometry = self.parent().geometry()
             x = parent_geometry.x() + (parent_geometry.width() - self.width()) // 2
@@ -82,65 +71,60 @@ class AddAttackTypeDialog(QDialog):
             self.move(x, y)
 
     def setup_ui(self):
-        """Настраивает интерфейс диалога"""
+        """настраиваем интерфейс диалога"""
         main_layout = QVBoxLayout(self)
         main_layout.setSpacing(15)
         main_layout.setContentsMargins(20, 20, 20, 20)
 
-        # Заголовок
         title_label = QLabel("Добавление типа атак")
         title_label.setFont(QFont("Arial", 14, QFont.Bold))
         title_label.setAlignment(Qt.AlignCenter)
         title_label.setStyleSheet("color: #2c3e50; margin-bottom: 10px;")
         main_layout.addWidget(title_label)
 
-        # Секция со списком текущих типов атак
         current_attacks_group = self.create_current_attacks_group()
         main_layout.addWidget(current_attacks_group)
 
-        # Секция добавления нового типа
         new_attack_group = self.create_new_attack_group()
         main_layout.addWidget(new_attack_group)
 
-        # Статус и кнопка сохранения
+        """статус и кнопка сохранения"""
         bottom_widget = self.create_bottom_widget()
         main_layout.addWidget(bottom_widget)
 
     def create_current_attacks_group(self):
-        """Создает группу с текущими типами атак"""
         group = QFrame()
         group.setFrameStyle(QFrame.Box)
         group.setStyleSheet("QFrame { border: 2px solid #d8bfd8; border-radius: 6px; padding: 10px; }")
 
         layout = QVBoxLayout(group)
 
-        # Заголовок группы
         title = QLabel("Список текущих типов атак:")
         title.setFont(QFont("Arial", 10, QFont.Bold))
         title.setStyleSheet("color: #2c3e50; margin-bottom: 10px;")
         layout.addWidget(title)
 
-        # Таблица с текущими типами атак
         self.setup_attacks_table(layout)
 
         return group
 
     def setup_attacks_table(self, layout):
-        """Создает и настраивает таблицу типов атак"""
+        """создаем и настраиваем таблицу типов атак"""
         self.attacks_table = QTableWidget()
         self.attacks_table.setColumnCount(2)
         self.attacks_table.setHorizontalHeaderLabels(["ID", "Название атаки"])
 
-        # Настраиваем внешний вид таблицы
         self.attacks_table.setStyleSheet("""
             QTableWidget {
                 gridline-color: #d0d0d0;
                 font-size: 10px;
+                color: black;
                 background-color: white;
             }
             QHeaderView::section {
                 background-color: #e6e6fa;
                 padding: 8px;
+                color: black;
                 border: 1px solid #d8bfd8;
                 font-weight: bold;
                 font-size: 10px;
@@ -152,46 +136,39 @@ class AddAttackTypeDialog(QDialog):
             }
         """)
 
-        # Настраиваем поведение колонок
+        """настраиваем поведение колонок"""
         header = self.attacks_table.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.ResizeToContents)  # ID - по содержимому
-        header.setSectionResizeMode(1, QHeaderView.Stretch)  # Название - растягивается
+        header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(1, QHeaderView.Stretch)
 
-        # Загружаем данные
         self.load_attacks_data()
 
         layout.addWidget(self.attacks_table)
 
     def load_attacks_data(self):
-        """Загружает данные в таблицу типов атак"""
         self.attacks_table.setRowCount(len(self.attack_types))
-
         for row, (attack_id, attack_name) in enumerate(self.attack_types):
-            # ID
             id_item = QTableWidgetItem(str(attack_id))
             id_item.setTextAlignment(Qt.AlignCenter)
             self.attacks_table.setItem(row, 0, id_item)
 
-            # Название атаки
             name_item = QTableWidgetItem(attack_name)
             name_item.setTextAlignment(Qt.AlignLeft | Qt.AlignVCenter)
             self.attacks_table.setItem(row, 1, name_item)
 
     def create_new_attack_group(self):
-        """Создает группу для добавления нового типа атак"""
         group = QFrame()
         group.setFrameStyle(QFrame.Box)
         group.setStyleSheet("QFrame { border: 2px solid #d8bfd8; border-radius: 6px; padding: 10px; }")
 
         layout = QVBoxLayout(group)
 
-        # Заголовок группы
         title = QLabel("Новый тип атак")
         title.setFont(QFont("Arial", 10, QFont.Bold))
         title.setStyleSheet("color: #2c3e50; margin-bottom: 10px;")
         layout.addWidget(title)
 
-        # Поле ввода названия атаки
+        """поле ввода названия атаки"""
         input_layout = QHBoxLayout()
 
         name_label = QLabel("Название:")
@@ -220,18 +197,16 @@ class AddAttackTypeDialog(QDialog):
         return group
 
     def create_bottom_widget(self):
-        """Создает нижнюю часть с кнопкой сохранения и статусом"""
+        """создаем нижнюю часть с кнопкой сохранения и статусом"""
         widget = QWidget()
         layout = QVBoxLayout(widget)
         layout.setSpacing(10)
 
-        # Статус
         self.status_label = QLabel("Статус: не сохранено")
         self.status_label.setFont(QFont("Arial", 9))
         self.status_label.setStyleSheet("color: #e74c3c; font-weight: bold;")
         layout.addWidget(self.status_label)
 
-        # Кнопка сохранения
         self.save_btn = QPushButton("Сохранить тип")
         self.save_btn.setMinimumHeight(35)
         self.save_btn.setStyleSheet("""
@@ -257,6 +232,5 @@ class AddAttackTypeDialog(QDialog):
         return widget
 
     def update_status(self):
-        """Обновляет статус при изменении данных"""
         self.status_label.setText("Статус: не сохранено")
         self.status_label.setStyleSheet("color: #e74c3c; font-weight: bold;")

@@ -4,6 +4,7 @@ from PySide6.QtCore import Qt
 from add_experiment_dialog import AddExperimentDialog
 from add_attack_type_dialog import AddAttackTypeDialog
 from history_window import HistoryWindow
+from database import db
 
 
 class MainWindow(QMainWindow):

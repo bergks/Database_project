@@ -1,8 +1,7 @@
-import os
 DB_CONFIG = {
-    'dbname': 'TestDB',
+    'dbname': 'postgres',
     'user': 'postgres',
-    'password': '1Love_you))',
+    'password': '123456',
     'host': 'localhost',
     'port': '5432'
 }

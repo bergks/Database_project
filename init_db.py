@@ -5,6 +5,7 @@ from add_test_data import add_test_data
 logging.basicConfig(level=logging.DEBUG)
 
 def init_database():
+    db.init_db()
     """Инициализирует базу данных начальными данными"""
     try:
         # Добавляем начальные типы атак, если их нет
