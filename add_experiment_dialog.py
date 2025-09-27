@@ -7,6 +7,11 @@ from PySide6.QtCore import Qt, QDate
 from database import db
 import logging
 
+from logging_config import configure_logging
+
+configure_logging(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
 
 class AddExperimentDialog(QDialog):
     def __init__(self, parent=None):
@@ -472,7 +477,7 @@ class AddExperimentDialog(QDialog):
                         'precision': spins[1].value(),
                         'recall': spins[2].value()
                     })
-
+        logging.info("Данные добавлены в data")
         return data
 
     def load_attack_types(self):
@@ -481,7 +486,7 @@ class AddExperimentDialog(QDialog):
             self.attack_types = [(at['name'], at['id']) for at in attack_types_data]
 
             self.update_attack_comboboxes()
-
+            logging.info("Данные успешно загружены и обновлены")
         except Exception as e:
             logging.error(f"Ошибка загрузки типов атак: {e}")
 
@@ -527,6 +532,7 @@ class AddExperimentDialog(QDialog):
             QMessageBox.information(self, "Успех", f"Эксперимент #{experiment_id} сохранен!")
             self.status_label.setText("Статус: сохранено")
             self.status_label.setStyleSheet("color: #27ae60; font-weight: bold;")
+            logging.info("Данные успешно сохранены")
 
         except Exception as e:
             logging.error(f"Ошибка сохранения эксперимента: {e}")

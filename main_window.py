@@ -1,10 +1,15 @@
+import logging
+
 from PySide6.QtWidgets import (QMainWindow, QPushButton, QWidget, QVBoxLayout, QLabel)
 from PySide6.QtGui import QGuiApplication, QFont
 from PySide6.QtCore import Qt
 from add_experiment_dialog import AddExperimentDialog
 from add_attack_type_dialog import AddAttackTypeDialog
 from history_window import HistoryWindow
+from logging_config import configure_logging
 
+configure_logging(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -87,23 +92,28 @@ class MainWindow(QMainWindow):
 
     def open_add_experiment(self):
         dialog = AddExperimentDialog(self)
+        logger.info("Диалог добавления эксперимента открыт")
         dialog.exec()
 
     def open_attack_types(self):
         dialog = AddAttackTypeDialog(self)
+        logger.info("Диалог добавления эксперимента типа атаки")
         dialog.exec()
 
     def open_experiments_view(self):
         window = HistoryWindow(self, "Эксперименты")
         window.show()
+        logger.info("Окно просмотра экспериментов")
         window.activateWindow()
 
     def open_metrics_view(self):
         window = HistoryWindow(self, "Метрики")
         window.show()
+        logger.info("Окно просмотра метрик")
         window.activateWindow()
 
     def open_params_view(self):
         window = HistoryWindow(self, "Параметры")
         window.show()
+        logger.info("Окно просмотра параметров")
         window.activateWindow()

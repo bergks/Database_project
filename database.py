@@ -5,14 +5,10 @@ from config import DB_CONFIG
 import logging
 import sys
 
-# Настраиваем логгер
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(name)s - %(levelname)s - %(message)s',
-    handlers=[logging.StreamHandler(sys.stdout)]
-)
+from logging_config import configure_logging
 
-logger = logging.getLogger('DDOs_attacks_app')
+configure_logging(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 
 class DatabaseManager:

@@ -6,6 +6,11 @@ from PySide6.QtGui import QFont
 from PySide6.QtCore import Qt
 from database import db
 import logging
+from logging_config import configure_logging
+
+configure_logging(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
 
 
 class AddAttackTypeDialog(QDialog):
@@ -59,6 +64,7 @@ class AddAttackTypeDialog(QDialog):
             self.status_label.setStyleSheet("color: #27ae60; font-weight: bold;")
 
             QMessageBox.information(self, "Успех", f"Тип атаки '{attack_name}' добавлен!")
+            logger.info(f"Атака {attack_name} успешно добавлена")
 
         except Exception as e:
             logging.error(f"Ошибка сохранения типа атаки: {e}")

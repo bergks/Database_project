@@ -1,11 +1,15 @@
-# add_test_data.py
+import logging
 from database import db
 from datetime import date
+from logging_config import configure_logging
+
+configure_logging(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 
 def add_test_data():
     try:
-        print("Добавление тестовых данных...")
+        logging.info("Добавление тестовых данных...")
 
         experiments = [
             ("LLM2", "v7.2", "dataset1", date(2025, 1, 2), 'active', "Эксперимент по обнаружению DDoS атак"),
@@ -51,16 +55,10 @@ def add_test_data():
             actual_exp_id = experiment_ids[metric[0] - 1] if metric[0] <= len(experiment_ids) else metric[0]
             db.insert_metric(actual_exp_id, metric[1], metric[2], metric[3], metric[4])
 
-        print("Тестовые данные успешно добавлены!")
-
-        print("\nИтоговая статистика:")
-        print(f"Экспериментов: {len(db.get_all_experiments())}")
-        print(f"Параметров: {len(db.get_all_parameters())}")
-        print(f"Метрик: {len(db.get_all_metrics())}")
-        print(f"Типов атак: {len(db.get_all_attack_types())}")
+        logging.info("Тестовые данные успешно добавлены!")
 
     except Exception as e:
-        print(f"Ошибка при добавлении тестовых данных: {e}")
+        logging.error(f"Ошибка при добавлении тестовых данных: {e}")
         import traceback
         traceback.print_exc()
 
