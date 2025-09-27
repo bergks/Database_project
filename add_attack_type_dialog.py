@@ -36,7 +36,7 @@ class AddAttackTypeDialog(QDialog):
             return
 
         try:
-            """проверяем существование в базе данных"""
+            #проверяем существование в базе данных
             existing_attacks = db.get_all_attack_types()
             existing_names = [at['name'] for at in existing_attacks]
 
@@ -44,15 +44,17 @@ class AddAttackTypeDialog(QDialog):
                 QMessageBox.warning(self, "Ошибка", "Тип атаки с таким названием уже существует!")
                 return
 
-            """сохраняем в базу данных"""
+            #сохраняем в базу данных
             new_id = db.insert_attack_type(attack_name)
 
-            """"обновляем локальный список и таблицу"""
+            #обновляем локальный список и таблицу
             self.attack_types.append((new_id, attack_name))
             self.load_attacks_data()
 
-            """очищаем поле ввода и обновляем статус"""
+            #очищаем поле ввода и обновляем статус
             self.new_attack_input.clear()
+
+            #обновляем статус
             self.status_label.setText("Статус: сохранено")
             self.status_label.setStyleSheet("color: #27ae60; font-weight: bold;")
 
@@ -71,7 +73,7 @@ class AddAttackTypeDialog(QDialog):
             self.move(x, y)
 
     def setup_ui(self):
-        """настраиваем интерфейс диалога"""
+        """интерфейс диалога"""
         main_layout = QVBoxLayout(self)
         main_layout.setSpacing(15)
         main_layout.setContentsMargins(20, 20, 20, 20)
@@ -88,7 +90,7 @@ class AddAttackTypeDialog(QDialog):
         new_attack_group = self.create_new_attack_group()
         main_layout.addWidget(new_attack_group)
 
-        """статус и кнопка сохранения"""
+        #Статус и кнопка сохранения
         bottom_widget = self.create_bottom_widget()
         main_layout.addWidget(bottom_widget)
 

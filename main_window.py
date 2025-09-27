@@ -4,14 +4,13 @@ from PySide6.QtCore import Qt
 from add_experiment_dialog import AddExperimentDialog
 from add_attack_type_dialog import AddAttackTypeDialog
 from history_window import HistoryWindow
-from database import db
 
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Моя база данных")
-        self.resize(700, 500)  # ← Еще увеличиваем ширину окна
+        self.resize(700, 500)
         self.setMinimumSize(600, 400)
         self.center_window()
 
@@ -20,26 +19,21 @@ class MainWindow(QMainWindow):
         layout = QVBoxLayout(central_widget)
         layout.setSpacing(15)
 
-        # УВЕЛИЧИВАЕМ ОТСТУПЫ ЕЩЕ В 2 РАЗА: было 90, стало 180
         layout.setContentsMargins(180, 30, 180, 30)  # ← left, top, right, bottom
 
-        # Заголовок "Моя база данных"
         title_label = QLabel("Моя база данных")
         title_label.setAlignment(Qt.AlignCenter)
         title_label.setFont(QFont("Arial", 20, QFont.Bold))
         title_label.setStyleSheet("color: #2c3e50; margin-bottom: 20px;")
         layout.addWidget(title_label)
 
-        # Основные кнопки
         self.btn_add_exp = QPushButton("Добавить новый эксперимент")
         self.btn_add_attack = QPushButton("Посмотреть/Добавить типы атак")
 
-        # Новые кнопки для просмотра
         self.btn_view_experiments = QPushButton("Посмотреть эксперименты")
         self.btn_view_metrics = QPushButton("Посмотреть метрики")
         self.btn_view_params = QPushButton("Посмотреть параметры")
 
-        # Список всех кнопок для единообразного стиля
         all_buttons = [
             self.btn_add_exp,
             self.btn_add_attack,
@@ -71,17 +65,14 @@ class MainWindow(QMainWindow):
                 }
             """)
 
-        # Добавляем кнопки в layout в нужном порядке
         layout.addWidget(self.btn_add_exp)
         layout.addWidget(self.btn_add_attack)
         layout.addWidget(QLabel())  # Пустой отступ
 
-        # Добавляем новые кнопки просмотра
         layout.addWidget(self.btn_view_experiments)
         layout.addWidget(self.btn_view_metrics)
         layout.addWidget(self.btn_view_params)
 
-        # Подключаем кнопки к функциям
         self.btn_add_exp.clicked.connect(self.open_add_experiment)
         self.btn_add_attack.clicked.connect(self.open_attack_types)
         self.btn_view_experiments.clicked.connect(self.open_experiments_view)

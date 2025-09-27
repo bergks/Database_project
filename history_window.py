@@ -60,16 +60,15 @@ class HistoryWindow(QMainWindow):
                     exp['model_name'],
                     exp['model_version'],
                     exp['dataset_name'],
-                    exp['test_date'].strftime('%Y-%m-%d'),  # Форматируем дату
+                    exp['test_date'].strftime('%Y-%m-%d'),
                     exp['experiment_status_enum'],
-                    exp['description'] or ''  # На случай NULL
+                    exp['description'] or ''
                 ])
 
             self.fill_table(table_data)
 
         except Exception as e:
             logging.error(f"Ошибка загрузки экспериментов: {e}")
-            # Используем тестовые данные при ошибке
             """experiments_data = [
                 [1, "LLM2", "v7.2", "dataset1", "2025-01-02", "Ошибка загрузки данных"],
             ]
@@ -179,12 +178,11 @@ class HistoryWindow(QMainWindow):
                 item.setTextAlignment(Qt.AlignCenter)  # ВСЕ ячейки по центру
                 self.table.setItem(row, col, item)
 
-        # Настраиваем размеры колонок после заполнения данными
         header = self.table.horizontalHeader()
         for col in range(self.table.columnCount()):
-            if col in [0, 1, 2]:  # ID колонки - по содержимому
+            if col in [0, 1, 2]:
                 header.setSectionResizeMode(col, QHeaderView.ResizeToContents)
-            else:  # Остальные колонки - растягиваются
+            else:
                 header.setSectionResizeMode(col, QHeaderView.Stretch)
 
     def center_on_screen(self):

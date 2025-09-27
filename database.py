@@ -5,11 +5,11 @@ from config import DB_CONFIG
 import logging
 import sys
 
-# Настраиваем кодировку для логгера
+# Настраиваем логгер
 logging.basicConfig(
     level=logging.DEBUG,
     format='%(name)s - %(levelname)s - %(message)s',
-    handlers=[logging.StreamHandler(sys.stdout)]  # Используем stdout
+    handlers=[logging.StreamHandler(sys.stdout)]
 )
 
 logger = logging.getLogger('DDOs_attacks_app')
@@ -18,7 +18,6 @@ logger = logging.getLogger('DDOs_attacks_app')
 class DatabaseManager:
     def __init__(self):
         self.connection_params = DB_CONFIG.copy()
-        # Убедимся, что кодировка правильная
         self.connection_params['client_encoding'] = 'UTF8'
 
     def get_connection(self, dbname=None, autocommit=False):
@@ -41,23 +40,18 @@ class DatabaseManager:
         logger.info('Initializing database...')
 
         try:
-            # Сначала проверяем/создаем базу данных
             self._ensure_database_exists()
-
-            # Затем создаем таблицы
             self._ensure_tables_exist()
 
             logger.info('Database initialization completed successfully')
 
         except Exception as e:
-            # Безопасное логирование ошибки
             error_msg = str(e).encode('utf-8', errors='replace').decode('utf-8')
             logger.error(f'Error during database initialization: {error_msg}')
             raise
 
     def _ensure_database_exists(self):
         """Проверяет и создает базу данных если нужно"""
-        # Подключаемся к postgres с явным указанием кодировки
         conn_params = {
             'host': self.connection_params['host'],
             'user': self.connection_params['user'],
@@ -67,11 +61,10 @@ class DatabaseManager:
         }
 
         conn = psycopg2.connect(**conn_params)
-        conn.autocommit = True  # Autocommit для создания БД
+        conn.autocommit = True
 
         try:
             with conn.cursor() as cursor:
-                # Простой запрос без русских символов
                 cursor.execute(
                     "SELECT 1 FROM pg_catalog.pg_database WHERE datname = %s",
                     ('ddosattacksdb',)
@@ -80,7 +73,6 @@ class DatabaseManager:
                 logger.info(f'Database exists: {exists}')
 
                 if not exists:
-                    # Простой CREATE DATABASE без специальных параметров
                     cursor.execute("CREATE DATABASE ddosattacksdb")
                     logger.info('Database created successfully')
 
@@ -118,7 +110,6 @@ class DatabaseManager:
 
     def _create_tables(self, cursor):
         """Создает необходимые таблицы в базе данных"""
-        # Сначала пытаемся создать ENUM тип отдельно
         try:
             cursor.execute("SELECT 1 FROM pg_type WHERE typname = 'experiment_status'")
             if not cursor.fetchone():
@@ -128,7 +119,6 @@ class DatabaseManager:
                 logger.info('Enum type already exists')
         except Exception as e:
             logger.warning(f'Enum type creation warning: {str(e)}')
-            # Не прерываем выполнение, продолжаем создавать таблицы
 
         tables = [
             """
@@ -177,12 +167,10 @@ class DatabaseManager:
                 logger.debug(f'Table {i + 1} created successfully')
             except Exception as e:
                 logger.error(f'Error creating table {i + 1}: {str(e)}')
-                # Продолжаем создание остальных таблиц
                 continue
 
     def execute_query(self, query: str, params: tuple = None, fetch: bool = False):
         """Выполняет запрос к базе данных"""
-        # Убедимся, что используем правильную базу данных
         conn_params = self.connection_params.copy()
         conn_params['dbname'] = 'ddosattacksdb'
         conn_params['client_encoding'] = 'UTF8'
@@ -205,7 +193,6 @@ class DatabaseManager:
         finally:
             conn.close()
 
-    # Остальные методы остаются без изменений...
     def insert_experiment(self, model_name: str, model_version: str, dataset_name: str,
                           test_date: str, experiment_status_enum: str, description: str) -> int:
         """Добавляет эксперимент и возвращает его ID"""
