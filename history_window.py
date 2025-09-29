@@ -15,8 +15,8 @@ class HistoryWindow(QMainWindow):
         self.setMinimumSize(1000, 600)
         self.center_on_screen()
         self.content_type = content_type
-        self.all_experiments_data = []  # Храним все данные для фильтрации
-        self.filtered_experiments_data = []  # Отфильтрованные данные
+        self.all_experiments_data = []
+        self.filtered_experiments_data = []
 
         central_widget = QWidget()
         self.setCentralWidget(central_widget)

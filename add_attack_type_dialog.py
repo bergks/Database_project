@@ -41,7 +41,10 @@ class AddAttackTypeDialog(QDialog):
             return
 
         try:
-            #проверяем существование в базе данных
+            if len(attack_name) > 50:
+                logging.warning('Имя атаки должно быть меньше 50 символов')
+                QMessageBox.warning(self, "Ошибка", "Имя атаки должно быть меньше 50 символов")
+                return
             existing_attacks = db.get_all_attack_types()
             existing_names = [at['name'] for at in existing_attacks]
 

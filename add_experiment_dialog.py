@@ -435,6 +435,33 @@ class AddExperimentDialog(QDialog):
             }
         """
 
+    def validation(self, data):
+        if not data['model_name'] or not data['model_version'] or not data['dataset_name']:
+            logging.warning('Заполнены не все обязательные поля')
+            QMessageBox.warning(self, "Ошибка", "Заполните обязательные поля: модель, версия, датасет!")
+            return False
+
+        if len(data['model_name']) > 50:
+            logging.warning('Имя модели должно быть меньше 50 символов')
+            QMessageBox.warning(self, "Ошибка", "Имя модели должно быть меньше 50 символов")
+            return False
+
+        if len(data['model_version']) > 10:
+            logging.warning('Версия модели должна быть меньше 10 символов')
+            QMessageBox.warning(self, "Ошибка", "Версия модели должна быть меньше 10 символов")
+            return False
+
+        if len(data['dataset_name']) > 50:
+            logging.warning("Имя датасета должно быть меньше 50 символов")
+            QMessageBox.warning(self, "Ошибка", "Имя датасета должно быть меньше 50 символов")
+            return False
+
+        if len(data['parameters'][0]['name']) > 50:
+            logging.warning("Имя параметра должно быть меньше 50 символов")
+            QMessageBox.warning(self, "Ошибка", "Имя параметра должно быть меньше 50 символов")
+            return False
+
+
     def collect_experiment_data(self):
         """собираем параметры"""
         data = {
@@ -477,8 +504,11 @@ class AddExperimentDialog(QDialog):
                         'precision': spins[1].value(),
                         'recall': spins[2].value()
                     })
+
         logging.info("Данные добавлены в data")
         return data
+
+
 
     def load_attack_types(self):
         try:
@@ -504,8 +534,7 @@ class AddExperimentDialog(QDialog):
         try:
             data = self.collect_experiment_data()
 
-            if not data['model_name'] or not data['model_version'] or not data['dataset_name']:
-                QMessageBox.warning(self, "Ошибка", "Заполните обязательные поля: модель, версия, датасет!")
+            if not self.validation(data):
                 return
 
             experiment_id = db.insert_experiment(

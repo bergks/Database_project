@@ -3,7 +3,6 @@ from psycopg2.extras import RealDictCursor
 from typing import List, Dict, Any, Optional
 from config import DB_CONFIG
 import logging
-import sys
 
 from logging_config import configure_logging
 
@@ -120,9 +119,9 @@ class DatabaseManager:
             """
             CREATE TABLE IF NOT EXISTS experiments (
                 id SERIAL PRIMARY KEY,
-                model_name VARCHAR NOT NULL,
-                model_version VARCHAR NOT NULL,
-                dataset_name VARCHAR NOT NULL,
+                model_name VARCHAR(50) NOT NULL,
+                model_version VARCHAR(10) NOT NULL,
+                dataset_name VARCHAR(50) NOT NULL,
                 test_date DATE NOT NULL,
                 experiment_status_enum experiment_status NOT NULL DEFAULT 'active',
                 description TEXT
@@ -131,15 +130,15 @@ class DatabaseManager:
             """
             CREATE TABLE IF NOT EXISTS attack_types (
                 id SERIAL PRIMARY KEY,
-                name VARCHAR NOT NULL
+                name VARCHAR(50) NOT NULL
             )
             """,
             """
             CREATE TABLE IF NOT EXISTS parameters (
                 id SERIAL PRIMARY KEY,
                 experiment_id INTEGER NOT NULL,
-                parameter_name VARCHAR NOT NULL,
-                parameter_value VARCHAR NOT NULL,
+                parameter_name VARCHAR(50) NOT NULL,
+                parameter_value FLOAT NOT NULL CHECK(parameter_value BETWEEN 0 AND 1),
                 FOREIGN KEY (experiment_id) REFERENCES experiments(id)
             )
             """,

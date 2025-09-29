@@ -26,15 +26,15 @@ def add_test_data():
 
         parameters = [
             (1, "learning_rate", "0.001"),
-            (1, "batch_size", "32"),
-            (1, "epochs", "100"),
-            (2, "learning_rate", "0.01"),
-            (2, "optimizer", "1"),
-            (3, "hidden_layers", "3"),
-            (3, "neurons_per_layer", "128"),
-            (4, "dropout_rate", "0.2"),
+            (1, "batch_size", "0.002"),
+            (1, "epochs", "0.220"),
+            (2, "learning_rate", "0.330"),
+            (2, "optimizer", "1.000"),
+            (3, "hidden_layers", "0.333"),
+            (3, "neurons_per_layer", "0.345"),
+            (4, "dropout_rate", "0.233"),
             (5, "learning_rate", "0.005"),
-            (5, "activation", "2"),
+            (5, "activation", "0.345"),
         ]
 
         for param in parameters:
