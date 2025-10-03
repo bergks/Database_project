@@ -285,8 +285,9 @@ class HistoryWindow(QMainWindow):
         self.table.setStyleSheet("""
             QTableWidget {
                 gridline-color: #d0d0d0;
-                font-size: 10px;
+                font-size: 12px;
                 color: black;
+                background-color: white;
             }
             QHeaderView::section {
                 background-color: #e6e6fa;
@@ -303,7 +304,23 @@ class HistoryWindow(QMainWindow):
                 background-color: white
             }
             
+            QTableWidget::item:hover {
+                background-color: #e8e8e8;  /* Заметный серый при наведении */
+            }
+            QTableWidget::item:selected {
+                background-color: #dcdcdc;  /* Еще темнее для выбранных строк */
+                color: black;
+            }
+            
         """)
+
+        # Альтернативная окраска строк
+        self.table.setAlternatingRowColors(True)
+
+        # Делаем таблицу только для чтения
+        self.table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.table.setSelectionBehavior(QTableWidget.SelectRows)
+        self.table.setFocusPolicy(Qt.NoFocus)
 
     def fill_table(self, data):
         """Заполняет таблицу данными"""
@@ -313,16 +330,19 @@ class HistoryWindow(QMainWindow):
         for row, row_data in enumerate(data):
             for col, value in enumerate(row_data):
                 item = QTableWidgetItem(str(value))
-                item.setTextAlignment(Qt.AlignCenter)
 
+                # ★★★ ДОПОЛНИТЕЛЬНАЯ ЗАЩИТА: делаем ячейки недоступными для редактирования ★★★
+                item.setFlags(item.flags() & ~Qt.ItemIsEditable)  # Убираем флаг редактирования
+
+                item.setTextAlignment(Qt.AlignCenter)  # ВСЕ ячейки по центру
                 self.table.setItem(row, col, item)
 
         # Настройка размеров колонок
         header = self.table.horizontalHeader()
         for col in range(self.table.columnCount()):
-            if col in [0, 1, 2, 4]:  # ID, Модель, Версия, Дата - фиксированный размер
+            if col in [0, 1, 2]:  # ID колонки - по содержимому
                 header.setSectionResizeMode(col, QHeaderView.ResizeToContents)
-            else:
+            else:  # Остальные колонки - растягиваются
                 header.setSectionResizeMode(col, QHeaderView.Stretch)
 
     def center_on_screen(self):
