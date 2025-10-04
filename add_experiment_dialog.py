@@ -133,19 +133,19 @@ class AddExperimentDialog(QDialog):
 
         label_style = "QLabel { font-size: 9px; font-weight: bold; color: #2c3e50; min-width: 110px; }"
 
-        label1 = QLabel("Название модели:")
+        label1 = QLabel("Название модели:*")
         label1.setStyleSheet(label_style)
         grid_layout.addWidget(label1, 0, 0)
 
-        label2 = QLabel("Версия модели:")
+        label2 = QLabel("Версия модели:*")
         label2.setStyleSheet(label_style)
         grid_layout.addWidget(label2, 1, 0)
 
-        label3 = QLabel("Название датасета:")
+        label3 = QLabel("Название датасета:*")
         label3.setStyleSheet(label_style)
         grid_layout.addWidget(label3, 2, 0)
 
-        label4 = QLabel("Дата (ГГГГ-ММ-ДД):")
+        label4 = QLabel("Дата (ГГГГ-ММ-ДД):*")
         label4.setStyleSheet(label_style)
         grid_layout.addWidget(label4, 3, 0)
 
@@ -460,6 +460,8 @@ class AddExperimentDialog(QDialog):
             logging.warning("Имя параметра должно быть меньше 50 символов")
             QMessageBox.warning(self, "Ошибка", "Имя параметра должно быть меньше 50 символов")
             return False
+
+        return True
 
 
     def collect_experiment_data(self):

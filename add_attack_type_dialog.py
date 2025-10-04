@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel,
                                QLineEdit, QPushButton, QTableWidget,
                                QTableWidgetItem, QHeaderView, QMessageBox,
-                               QWidget, QFrame)
+                               QWidget, QFrame, QAbstractItemView)
 from PySide6.QtGui import QFont
 from PySide6.QtCore import Qt
 from database import db
@@ -12,7 +12,6 @@ configure_logging(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
-
 class AddAttackTypeDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -21,6 +20,7 @@ class AddAttackTypeDialog(QDialog):
         self.setFixedSize(500, 600)
         self.center_on_parent()
         self.attack_types = []
+        self.is_saving = False  # Флаг для отслеживания процесса сохранения
         self.setup_ui()
         self.load_attack_types()
 
@@ -34,45 +34,63 @@ class AddAttackTypeDialog(QDialog):
             self.load_attacks_data()
 
     def save_attack_type(self):
-        attack_name = self.new_attack_input.text().strip()
-
-        if not attack_name:
-            QMessageBox.warning(self, "Ошибка", "Введите название типа атаки!")
+        # Защита от двойного нажатия
+        if self.is_saving:
+            logger.debug("Попытка двойного сохранения - игнорируем")
             return
 
+        self.is_saving = True
+        self.save_btn.setEnabled(False)  # Отключаем кнопку
+        self.attacks_table.setEnabled(False)  # Отключаем таблицу
+        self.new_attack_input.setEnabled(False)  # Отключаем поле ввода
+
         try:
-            if len(attack_name) > 50:
-                logging.warning('Имя атаки должно быть меньше 50 символов')
-                QMessageBox.warning(self, "Ошибка", "Имя атаки должно быть меньше 50 символов")
-                return
-            existing_attacks = db.get_all_attack_types()
-            existing_names = [at['name'] for at in existing_attacks]
+            attack_name = self.new_attack_input.text().strip()
 
-            if attack_name in existing_names:
-                QMessageBox.warning(self, "Ошибка", "Тип атаки с таким названием уже существует!")
+            if not attack_name:
+                QMessageBox.warning(self, "Ошибка", "Введите название типа атаки!")
                 return
 
-            #сохраняем в базу данных
-            new_id = db.insert_attack_type(attack_name)
+            try:
+                if len(attack_name) > 50:
+                    logging.warning('Имя атаки должно быть меньше 50 символов')
+                    QMessageBox.warning(self, "Ошибка", "Имя атаки должно быть меньше 50 символов")
+                    return
 
-            #обновляем локальный список и таблицу
-            self.attack_types.append((new_id, attack_name))
-            self.load_attacks_data()
+                existing_attacks = db.get_all_attack_types()
+                existing_names = [at['name'] for at in existing_attacks]
 
-            #очищаем поле ввода и обновляем статус
-            self.new_attack_input.clear()
+                if attack_name in existing_names:
+                    QMessageBox.warning(self, "Ошибка", "Тип атаки с таким названием уже существует!")
+                    return
 
-            #обновляем статус
-            self.status_label.setText("Статус: сохранено")
-            self.status_label.setStyleSheet("color: #27ae60; font-weight: bold;")
+                # сохраняем в базу данных
+                new_id = db.insert_attack_type(attack_name)
 
-            QMessageBox.information(self, "Успех", f"Тип атаки '{attack_name}' добавлен!")
-            logger.info(f"Атака {attack_name} успешно добавлена")
+                # обновляем локальный список и таблицу
+                self.attack_types.append((new_id, attack_name))
+                self.load_attacks_data()
 
-        except Exception as e:
-            logging.error(f"Ошибка сохранения типа атаки: {e}")
-            QMessageBox.critical(self, "Ошибка", f"Не удалось сохранить тип атаки: {str(e)}")
+                # очищаем поле ввода и обновляем статус
+                self.new_attack_input.clear()
 
+                # обновляем статус
+                self.status_label.setText("Статус: сохранено")
+                self.status_label.setStyleSheet("color: #27ae60; font-weight: bold;")
+
+                QMessageBox.information(self, "Успех", f"Тип атаки '{attack_name}' добавлен!")
+                logger.info(f"Атака {attack_name} успешно добавлена")
+
+            except Exception as e:
+                logging.error(f"Ошибка сохранения типа атаки: {e}")
+                QMessageBox.critical(self, "Ошибка", f"Не удалось сохранить тип атаки: {str(e)}")
+
+        finally:
+            # Всегда сбрасываем флаг и включаем элементы обратно
+            self.is_saving = False
+            self.save_btn.setEnabled(True)
+            self.attacks_table.setEnabled(True)
+            self.new_attack_input.setEnabled(True)
 
     def center_on_parent(self):
         if self.parent():
@@ -99,7 +117,7 @@ class AddAttackTypeDialog(QDialog):
         new_attack_group = self.create_new_attack_group()
         main_layout.addWidget(new_attack_group)
 
-        #Статус и кнопка сохранения
+        # Статус и кнопка сохранения
         bottom_widget = self.create_bottom_widget()
         main_layout.addWidget(bottom_widget)
 
@@ -125,10 +143,15 @@ class AddAttackTypeDialog(QDialog):
         self.attacks_table.setColumnCount(2)
         self.attacks_table.setHorizontalHeaderLabels(["ID", "Название атаки"])
 
+        # Запрещаем редактирование таблицы
+        self.attacks_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.attacks_table.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.attacks_table.setSelectionMode(QAbstractItemView.SingleSelection)
+
         self.attacks_table.setStyleSheet("""
             QTableWidget {
                 gridline-color: #d0d0d0;
-                font-size: 10px;
+                font-size: 12px;
                 color: black;
                 background-color: white;
             }
@@ -144,6 +167,19 @@ class AddAttackTypeDialog(QDialog):
             QTableWidget::item {
                 padding: 6px;
                 border-bottom: 1px solid #f0f0f0;
+                background-color: white
+            }
+
+            QTableWidget::item:hover {
+                background-color: #e8e8e8;
+            }
+            QTableWidget::item:selected {
+                background-color: #dcdcdc;
+                color: black;
+            }
+            QTableWidget:disabled {
+                background-color: #f5f5f5;
+                color: #999999;
             }
         """)
 
@@ -161,10 +197,12 @@ class AddAttackTypeDialog(QDialog):
         for row, (attack_id, attack_name) in enumerate(self.attack_types):
             id_item = QTableWidgetItem(str(attack_id))
             id_item.setTextAlignment(Qt.AlignCenter)
+            id_item.setFlags(id_item.flags() & ~Qt.ItemIsEditable)  # Запрещаем редактирование
             self.attacks_table.setItem(row, 0, id_item)
 
             name_item = QTableWidgetItem(attack_name)
             name_item.setTextAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+            name_item.setFlags(name_item.flags() & ~Qt.ItemIsEditable)  # Запрещаем редактирование
             self.attacks_table.setItem(row, 1, name_item)
 
     def create_new_attack_group(self):
@@ -199,6 +237,10 @@ class AddAttackTypeDialog(QDialog):
             }
             QLineEdit:focus {
                 border: 1px solid #c9a0c9;
+            }
+            QLineEdit:disabled {
+                background-color: #f5f5f5;
+                color: #999999;
             }
         """)
         input_layout.addWidget(self.new_attack_input)
@@ -235,6 +277,11 @@ class AddAttackTypeDialog(QDialog):
             }
             QPushButton:pressed {
                 background-color: #1e8449;
+            }
+            QPushButton:disabled {
+                background-color: #95a5a6;
+                border: 1px solid #7f8c8d;
+                color: #ecf0f1;
             }
         """)
         self.save_btn.clicked.connect(self.save_attack_type)
